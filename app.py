@@ -67,15 +67,15 @@ def getPostfix():
 #     return codecs.decode(json.dumps(unic).strip('"'), 'unicode_escape')
 
 #取得ChannelId [如果是群組或聊天室，一樣回傳channelId，不是userId]
-def getChannelId(update):
-    if hasattr(update, "message"):
+def getChannelId(update, msg_type):
+    if msg_type == "callback":
         return str(update.callback_query.message.chat_id)
     else:
         return str(update.message.chat_id)
 
 #取得UserId
-def getUserId(update):
-    if hasattr(update, "message"):
+def getUserId(update, msg_type):
+    if msg_type == "callback":
         return str(update.callback_query.from_user.id)
     else:
         return str(update.message.from_user.id)
@@ -83,8 +83,8 @@ def getUserId(update):
 ####################取得EVENT物件、發送訊息####################
 def get_event_obj(update, msg_type = None):
     ##取得頻道及使用者ID
-    channelId = getChannelId(update)
-    userId = getUserId(update)
+    channelId = getChannelId(update, msg_type)
+    userId = getUserId(update, msg_type)
     ##建頻道資料
     if userId: create_channel(userId)
     if channelId: create_channel(channelId)
@@ -170,7 +170,7 @@ def send_reply(update, GET_EVENT, STORE_LOG = False):
 ####################CallbackEvent處理區#################### 
 def handle_callback(bot, update):
     ##取得EVENT物件
-    GET_EVENT = get_event_obj(update)
+    GET_EVENT = get_event_obj(update, "callback")
     data = parse_qs(update.callback_query.data)
     print(data)
     
@@ -216,7 +216,6 @@ def handle_message(bot, update):
 #     ##發送
 #     GET_EVENT = location_processer(GET_EVENT, LOCATION_INFO)
 #     send_reply(GET_EVENT, True)
-
 
 
 # New a dispatcher for bot

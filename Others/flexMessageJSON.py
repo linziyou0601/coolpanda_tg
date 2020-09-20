@@ -6,7 +6,7 @@ from telegram import InlineKeyboardMarkup, InlineKeyboardButton, ReplyKeyboardMa
 ##主選單
 def markupMainMenu():
     return ReplyKeyboardMarkup(
-                [[KeyboardButton("功能教學")],
+                [[KeyboardButton("熊貓會做什麼")],
                 [KeyboardButton("目前狀態")]]
            )
 

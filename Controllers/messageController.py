@@ -213,7 +213,7 @@ def message_processer(GET_EVENT):
     elif key(GET_EVENT["lineMessage"])=="學過的話":
         ##你會說什麼
         nickname = "這裡" if GET_EVENT["channelId"][0]!='U' else "你"
-        flexObject = markupWhatCanSay(get_all_statement(GET_EVENT["channelPK"], nickname))
+        markupObject = markupWhatCanSay(get_all_statement(GET_EVENT["channelPK"], nickname))
         GET_EVENT["replyList"] = [{"type": "text", "msg": markupObject[0]}]
         GET_EVENT["replyLog"] = [GET_EVENT["lineMessage"], 0, 'markup']
     #抽籤式回答教學選單 [不限個人, 等級0+]

@@ -3,65 +3,7 @@
 #==============================================#
 ##主選單
 def flexMainMenu(channelId, level):
-    content = [
-        {
-            "type": "separator",
-            "margin": "xxl"
-        },
-        {
-            "type": "button",
-            "height": "sm",
-            "action": {
-            "type": "message",
-            "label": "功能教學",
-            "text": "熊貓會幹嘛"
-            },
-            "margin": "md"
-        },
-        {
-            "type": "button",
-            "height": "sm",
-            "action": {
-            "type": "message",
-            "label": "目前狀態",
-            "text": "目前狀態"
-            },
-            "margin": "md"
-        },
-        {
-            "type": "button",
-            "height": "sm",
-            "action": {
-            "type": "message",
-            "label": "目前等級",
-            "text": "目前等級"
-            },
-            "margin": "md"
-        }
-        # ,{
-        #     "type": "button",
-        #     "height": "sm",
-        #     "action": {
-        #     "type": "message",
-        #     "label": "口罩在哪買",
-        #     "text": "查詢特約藥局"
-        #     },
-        #     "margin": "md"
-        # } 
-    ]
-    if channelId[0]=='U' and level>=2:
-        content += [
-            {
-                "type": "button",
-                "height": "sm",
-                "action": {
-                "type": "message",
-                "label": "目前暱稱",
-                "text": "目前暱稱"
-                },
-                "margin": "md"
-            }
-        ]
+    content = 
     return {
         "type": "bubble",
         "direction": "ltr",
@@ -96,7 +38,42 @@ def flexMainMenu(channelId, level):
         "footer": {
             "type": "box",
             "layout": "vertical",
-            "contents": content
+            "contents": [
+        {
+            "type": "separator",
+            "margin": "xxl"
+        },
+        {
+            "type": "button",
+            "height": "sm",
+            "action": {
+            "type": "message",
+            "label": "功能教學",
+            "text": "熊貓會幹嘛"
+            },
+            "margin": "md"
+        },
+        {
+            "type": "button",
+            "height": "sm",
+            "action": {
+            "type": "message",
+            "label": "目前狀態",
+            "text": "目前狀態"
+            },
+            "margin": "md"
+        },
+        {
+            "type": "button",
+            "height": "sm",
+            "action": {
+            "type": "message",
+            "label": "目前等級",
+            "text": "目前等級"
+            },
+            "margin": "md"
+        }
+    ]
         }
     }
 
@@ -1057,7 +1034,7 @@ def flexTellMeKeyRes(title = ''):
         }
     }
 
-#確認詞條內容
+#XXXXXXXXXX確認詞條內容
 def flexLearnConfirm(key = '', res = '', tempId = ''):
     return {
         "type": "bubble",

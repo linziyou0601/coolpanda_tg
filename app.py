@@ -4,20 +4,21 @@ from urllib.parse import parse_qs
 import os, json, codecs, re, random
 
 import telegram
-from telegram.ext import Dispatcher, MessageHandler, Filters
+from telegram.ext import Dispatcher, MessageHandler, Filters, Updater, CommandHandler, CallbackQueryHandler
+from telegram import InlineKeyboardMarkup, InlineKeyboardButton, ReplyKeyboardMarkup, KeyboardButton
 
 #導入env, model
 from env import *
 from model import *
 # #導入Others
 # from Others.flexMessageJSON import *
-# #導入Controllers
-# from Controllers.messageController import *
+#導入Controllers
+from Controllers.messageController import *
 # from Controllers.locationController import *
-# from Controllers.postbackController import *
+from Controllers.postbackController import *
 #導入Managers
 from Managers.channelManager import *
-# from Managers.messageManager import *
+from Managers.messageManager import *
 # from Managers.statementManager import *
 # #導入Services
 # from Services.geocodingService import *
@@ -38,23 +39,17 @@ def webhook_handler():
     """Set route /hook with POST method will trigger this method."""
     if request.method == "POST":
         update = telegram.Update.de_json(request.get_json(force=True), bot)
-
         # Update dispatcher process that handler to process this message
         dispatcher.process_update(update)
     return 'ok'
-
-####################自動回復####################
-def reply_handler(bot, update):
-    """自動回復"""
-    text = update.message.text + str(update.message["from"]["id"])
-    update.message.reply_text(text)
 
 # New a dispatcher for bot
 dispatcher = Dispatcher(bot, None)
 
 # Add handler for handling message, there are many kinds of message. For this handler, it particular handle text
 # message.
-dispatcher.add_handler(MessageHandler(Filters.text, reply_handler))
+dispatcher.add_handler(MessageHandler(Filters.text, handle_message))
+dispatcher.add_handler(CallbackQueryHandler(handle_callback))
 
 # ####################推播####################
 # @app.route("/pushing", methods=['POST'])
@@ -79,56 +74,55 @@ def getPostfix():
 # def sticon(unic):
 #     return codecs.decode(json.dumps(unic).strip('"'), 'unicode_escape')
 
-# #取得ChannelId [如果是群組或聊天室，一樣回傳channelId，不是userId]
-# def getChannelId(event):
-#     e_source = event.source
-#     return e_source.room_id if e_source.type == "room" else e_source.group_id if e_source.type == "group" else e_source.user_id
+#取得ChannelId [如果是群組或聊天室，一樣回傳channelId，不是userId]
+def getChannelId(update):
+    return str(update.message.chat_id)
 
-# #取得UserId
-# def getUserId(event):
-#     return event.source.user_id if hasattr(event.source, 'user_id') else None
+#取得UserId
+def getUserId(update):
+    return str(update.message.from_user.id)
 
-# ####################取得EVENT物件、發送訊息####################
-# def get_event_obj(event):
-#     ##取得頻道及使用者ID
-#     channelId = getChannelId(event)
-#     userId = getUserId(event)
-#     ##建頻道資料
-#     if userId: create_channel(userId)
-#     create_channel(channelId)
-#     ##取得頻道資料
-#     channelData = get_channel(channelId)
-#     userData = get_channel(userId) if userId else None
-    
-#     profileName = ""
-#     try: profileName = line_bot_api.get_profile(userId).display_name if userId else ""
-#     except: profileName = ""
+####################取得EVENT物件、發送訊息####################
+def get_event_obj(update, msg_type = None):
+    ##取得頻道及使用者ID
+    channelId = getChannelId(update)
+    userId = getUserId(update)
+    ##建頻道資料
+    if userId: create_channel(userId)
+    create_channel(channelId)
+    ##取得頻道資料
+    channelData = get_channel(channelId)
+    userData = get_channel(userId) if userId else None
+    ##取得名稱
+    profileName = ""
+    try: profileName = str(update.message.from_user.first_name+" "+update.message.from_user.first_name) if userId else ""
+    except: profileName = ""
+    ##回傳
+    return {
+        "channelPK": get_pk_by_channel_id(channelId),
+        "userPK": get_pk_by_channel_id(userId),
+        "channelId": channelId,
+        "userId": userId,
+        "lineMessage": "",                              #取得收到的訊息
+        "lineMessageType": msg_type,
+        "mute": channelData['mute'],
+        "global_talk": channelData['global_talk'],
+        "replyList": [],                                #初始化傳送內容（可為List或單一Message Object）
+        "replyLog": ["", 0, ""],                        #發出去的物件準備寫入紀錄用 [訊息, 有效度(0=功能型, 1=關鍵字, 2=一般型), 訊息類型]
+        "postfix": getPostfix()
+    }
 
-#     return {
-#         "reply_token": event.reply_token,
-#         "channelPK": get_pk_by_channel_id(channelId),
-#         "userPK": get_pk_by_channel_id(userId),
-#         "channelId": channelId,
-#         "userId": userId,
-#         "lineMessage": "",                              #取得收到的訊息
-#         "lineMessageType": event.message.type if hasattr(event, 'message') else None,
-#         "level": int(int(userData['exp'])/10) if userData else int(int(channelData['exp'])/10),     #等級
-#         "exp": int(userData['exp'])%10 if userData else int(channelData['exp'])%10,          #經驗值每+10升一級
-#         "nickname": userData['nickname'] if userData and int(int(userData['exp'])/10)>=2 and userData['nickname'] else profileName,
-#         "mute": channelData['mute'],
-#         "global_talk": channelData['global_talk'],
-#         "replyList": [],                                #初始化傳送內容（可為List或單一Message Object）
-#         "replyLog": ["", 0, ""],                        #發出去的物件準備寫入紀錄用 [訊息, 有效度(0=功能型, 1=關鍵字, 2=一般型), 訊息類型]
-#         "postfix": getPostfix()
-#     }
-
-# def send_reply(GET_EVENT, STORE_LOG = False):
-#     ##儲存訊息
-#     if STORE_LOG:
-#         if GET_EVENT["replyLog"][0]: store_replied(GET_EVENT["replyLog"][0], GET_EVENT["replyLog"][1], GET_EVENT["replyLog"][2], GET_EVENT["channelPK"])  #記錄機器人本次回的訊息
-#         store_received(GET_EVENT["lineMessage"], GET_EVENT["lineMessageType"], GET_EVENT["channelPK"], GET_EVENT["userPK"])                               #儲存本次收到的語句
-#     ####回傳給LINE
-#     line_bot_api.reply_message(GET_EVENT["reply_token"], GET_EVENT["replyList"])
+def send_reply(update, GET_EVENT, STORE_LOG = False):
+    ##儲存訊息
+    if STORE_LOG:
+        if GET_EVENT["replyLog"][0]: store_replied(GET_EVENT["replyLog"][0], GET_EVENT["replyLog"][1], GET_EVENT["replyLog"][2], GET_EVENT["channelPK"])  #記錄機器人本次回的訊息
+        store_received(GET_EVENT["lineMessage"], GET_EVENT["lineMessageType"], GET_EVENT["channelPK"], GET_EVENT["userPK"])                               #儲存本次收到的語句
+    ####回傳給TELEGRAM
+    for replyMsg in GET_EVENT["replyList"]:
+        if replyMsg["type"] == "text":
+            update.message.reply_text(replyMsg["msg"])
+        if replyMsg["type"] == "markup":
+            update.message.reply_text(replyMsg["msg"], reply_markup = replyMsg["markup"])
 
 # ####################[加入, 退出]: [好友, 聊天窗]####################
 # @handler.add(FollowEvent)
@@ -173,27 +167,25 @@ def getPostfix():
 #     pass
 #     #remove_channel(getChannelId(event))
 
-# ####################PostbackEvent處理區#################### 
-# @handler.add(PostbackEvent)
-# def handle_postback(event):
-#     ##取得EVENT物件
-#     GET_EVENT = get_event_obj(event)
-#     data = parse_qs(event.postback.data)
+####################CallbackEvent處理區#################### 
+def handle_callback(bot, update):
+    ##取得EVENT物件
+    GET_EVENT = get_event_obj(update)
+    data = parse_qs(update.callback_query.data)
     
-#     ##發送回覆
-#     GET_EVENT = postback_processer(GET_EVENT, data)
-#     send_reply(GET_EVENT, False)
+    ##發送回覆
+    GET_EVENT = postback_processer(GET_EVENT, data)
+    send_reply(GET_EVENT, False)
 
-# ####################文字訊息處理區#################### 
-# @handler.add(MessageEvent, message=TextMessage)
-# def handle_message(event):
-#     ##取得EVENT物件
-#     GET_EVENT = get_event_obj(event)
-#     GET_EVENT["lineMessage"] = event.message.text
+####################文字訊息處理區####################
+def handle_message(bot, update):
+    ##取得EVENT物件
+    GET_EVENT = get_event_obj(update, "text")
+    GET_EVENT["lineMessage"] = update.message.text
 
-#     ##發送
-#     GET_EVENT = message_processer(GET_EVENT)
-#     send_reply(GET_EVENT, True)
+    ##發送
+    GET_EVENT = message_processer(GET_EVENT)
+    send_reply(GET_EVENT, True)
 
 # ####################貼圖訊息處理區#################### 
 # @handler.add(MessageEvent, message=StickerMessage)

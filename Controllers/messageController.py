@@ -1,5 +1,7 @@
 import os, sys, json, codecs, re, random
 
+from telegram import InlineKeyboardMarkup, InlineKeyboardButton, ReplyKeyboardMarkup, KeyboardButton
+
 #前往上層目錄
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))) 
 #導入env, model
@@ -11,23 +13,27 @@ from Others.keywordFinder import *
 from Managers.channelManager import *
 from Managers.messageManager import *
 from Managers.statementManager import *
-#導入Services
-from Services.crawlerService import *
-from Services.lotteryService import *
+# #導入Services
+# from Services.crawlerService import *
+# from Services.lotteryService import *
 
 #################### 對答功能 ####################
 #[對答] 學說話
 def learn_statement_function(GET_EVENT, last_receives):
     if key(GET_EVENT["lineMessage"])=="學說話":
-        GET_EVENT["replyList"] = FlexSendMessage(alt_text = "請告訴我要學的關鍵字", contents = flexTellMeKeyRes("請告訴我要學的關鍵字"))
-        GET_EVENT["replyLog"] = ["請告訴我要學的關鍵字", 0, 'flex']
+        GET_EVENT["replyList"] = [{"type": "text", "msg": "請告訴我要學的關鍵字"}]
+        GET_EVENT["replyLog"] = ["請告訴我要學的關鍵字", 0, 'text']
     elif key(last_receives[0]['message'])=="學說話":
-        GET_EVENT["replyList"] = FlexSendMessage(alt_text = "我要回應什麼？", contents = flexTellMeKeyRes("我要回應什麼？"))
-        GET_EVENT["replyLog"] = ["我要回應什麼？", 0, 'flex']
+        GET_EVENT["replyList"] = [{"type": "text", "msg": "我要回應什麼？"}]
+        GET_EVENT["replyLog"] = ["我要回應什麼？", 0, 'text']
     else:
         temp_id = create_temp_statement(last_receives[0]['message'], GET_EVENT["lineMessage"], GET_EVENT["channelPK"], last_receives[1]['user_pk'])
-        GET_EVENT["replyList"] = FlexSendMessage(alt_text = "確認詞條內容", contents = flexLearnConfirm(last_receives[0]['message'], GET_EVENT["lineMessage"], temp_id))
-        GET_EVENT["replyLog"] = ["確認詞條內容", 0, 'flex']
+        markupObj = InlineKeyboardMarkup(
+            [[InlineKeyboardButton("是的沒錯", callback_data="action=confirm_learn&id="+str(temp_id)),
+              InlineKeyboardButton("這句母湯", callback_data="action=cancel_learn&id="+str(temp_id))]]
+        )
+        GET_EVENT["replyList"] = [{"type": "markup", "msg": "確認詞條內容\n【我看到】 "+last_receives[0]['message']+"\n【我要回】 "+GET_EVENT["lineMessage"], "markup": markupObj}]
+        GET_EVENT["replyLog"] = ["確認詞條內容", 0, 'markup']
     return GET_EVENT
 
 #[對答] 降低詞條優先度
@@ -35,109 +41,64 @@ def bad_statement_function(GET_EVENT):
     dataReceived = get_received(GET_EVENT["channelPK"], 1)
     dataReplied = get_replied(GET_EVENT["channelPK"], 1)
     adjust_priority(-3, dataReceived[0]['message'], dataReplied[0]['message'])
-    GET_EVENT["replyList"] = TextSendMessage(text="下次不會了～"+GET_EVENT["postfix"])
+    GET_EVENT["replyList"] = [{"type": "text", "msg": "下次不會了～"+GET_EVENT["postfix"]}]
     GET_EVENT["replyLog"] = ["好哦～", 0, 'text']
     return GET_EVENT
 
-#[對答] 指定暱稱
-def edit_nickname_function(GET_EVENT):
-    if key(GET_EVENT["lineMessage"])=="指定暱稱":
-        GET_EVENT["replyList"] = FlexSendMessage(alt_text = "要指定的暱稱是？", contents = flexTellMeNickname())
-        GET_EVENT["replyLog"] = ["要指定的暱稱是？", 0, 'flex']
-    else:
-        edit_channel_nickname(GET_EVENT["lineMessage"], GET_EVENT["channelId"])
-        GET_EVENT["replyList"] = FlexSendMessage(alt_text = "成功指定暱稱："+GET_EVENT["lineMessage"], contents = flexNicknameConfirm(GET_EVENT["lineMessage"]))
-        GET_EVENT["replyLog"] = ["成功指定暱稱"+GET_EVENT["lineMessage"], 0, 'flex']
-    return GET_EVENT
-
-#[對答] 解除指定暱稱
-def cancel_nickname_function(GET_EVENT):
-    edit_channel_nickname(GET_EVENT["channelId"], None)
-    GET_EVENT["replyList"] = TextSendMessage(text="好哦～"+GET_EVENT["postfix"])
-    GET_EVENT["replyLog"] = ["好哦～", 0, 'text']
-    return GET_EVENT
-
-#################### 爬蟲查詢功能 ####################
-#[爬蟲查詢] 天氣查詢
-def crawler_weather_function(GET_EVENT, last_receives):
-    #若本語句中有問天氣
-    if re.search("(目前天氣|未來天氣)$", key(GET_EVENT["lineMessage"])):
-        future = True if "未來" in key(GET_EVENT["lineMessage"]) else False
-        this_site = re.sub("(目前天氣|未來天氣)", "", key(GET_EVENT["lineMessage"]))
-        #若本語句中有直接給地點
-        if this_site:
-            weather = getWeather(None, None, this_site, future)
-            if weather:
-                flexObject = flexWeather72HR(weather) if future else flexWeather(weather)
-                GET_EVENT["replyList"] = FlexSendMessage(alt_text = flexObject[0], contents = flexObject[1])
-                GET_EVENT["replyLog"] = [flexObject[0], 0, 'flex']
-        #問地點
-        else:
-            GET_EVENT["replyList"] = FlexSendMessage(alt_text = "請輸入要查詢的位址，或傳送位址訊息", contents = flexTellMeLocation())
-            GET_EVENT["replyLog"] = ["要查詢的地點是？", 0, 'flex']
-    #若上語句中有問天氣且沒給地點
-    else:
-        future = True if "未來" in key(last_receives[0]['message']) else False
-        weather = getWeather(None, None, GET_EVENT["lineMessage"], future)
-        if weather:
-            flexObject = flexWeather72HR(weather) if future else flexWeather(weather)
-            GET_EVENT["replyList"] = FlexSendMessage(alt_text = flexObject[0], contents = flexObject[1])
-            GET_EVENT["replyLog"] = [flexObject[0], 0, 'flex']
-    return GET_EVENT
-
-#[爬蟲查詢] 空汙查詢
-def crawler_AQI_function(GET_EVENT):
-    #若本語句中有問空汙
-    if re.search("(空汙查詢)$", key(GET_EVENT["lineMessage"])):
-        this_site = re.sub("(空汙查詢)", "", key(GET_EVENT["lineMessage"]))
-        #若本語句中有直接給地點
-        if this_site:
-            aqi = getAQI(None, None, this_site)
-            if aqi:
-                flexObject = flexAQI(aqi)
-                GET_EVENT["replyList"] = FlexSendMessage(alt_text = flexObject[0], contents = flexObject[1])
-                GET_EVENT["replyLog"] = [flexObject[0], 0, 'flex']
-        #問地點
-        else:
-            GET_EVENT["replyList"] = FlexSendMessage(alt_text = "請輸入要查詢的位址，或傳送位址訊息", contents = flexTellMeLocation())
-            GET_EVENT["replyLog"] = ["要查詢的地點是？", 0, 'flex']
-    #若上語句中有問空汙且沒給地點
-    else:
-        aqi = getAQI(None, None, GET_EVENT["lineMessage"])
-        if aqi:
-            flexObject = flexAQI(aqi)
-            GET_EVENT["replyList"] = FlexSendMessage(alt_text = flexObject[0], contents = flexObject[1])
-            GET_EVENT["replyLog"] = [flexObject[0], 0, 'flex']
-    return GET_EVENT
-
-#[爬蟲查詢] 特約藥局查詢
-# def crawler_mask_function(GET_EVENT):
-#     if key(GET_EVENT["lineMessage"])=="特約藥局查詢": 
-#         GET_EVENT["replyList"] = FlexSendMessage(alt_text = "請輸入要查詢的位址，或傳送位址訊息", contents = flexTellMeLocation())
-#         GET_EVENT["replyLog"] = ["要查詢的地點是？", 0, 'flex']
+# #################### 爬蟲查詢功能 ####################
+# #[爬蟲查詢] 天氣查詢
+# def crawler_weather_function(GET_EVENT, last_receives):
+#     #若本語句中有問天氣
+#     if re.search("(目前天氣|未來天氣)$", key(GET_EVENT["lineMessage"])):
+#         future = True if "未來" in key(GET_EVENT["lineMessage"]) else False
+#         this_site = re.sub("(目前天氣|未來天氣)", "", key(GET_EVENT["lineMessage"]))
+#         #若本語句中有直接給地點
+#         if this_site:
+#             weather = getWeather(None, None, this_site, future)
+#             if weather:
+#                 flexObject = flexWeather72HR(weather) if future else flexWeather(weather)
+#                 GET_EVENT["replyList"] = FlexSendMessage(alt_text = flexObject[0], contents = flexObject[1])
+#                 GET_EVENT["replyLog"] = [flexObject[0], 0, 'flex']
+#         #問地點
+#         else:
+#             GET_EVENT["replyList"] = FlexSendMessage(alt_text = "請輸入要查詢的位址，或傳送位址訊息", contents = flexTellMeLocation())
+#             GET_EVENT["replyLog"] = ["要查詢的地點是？", 0, 'flex']
+#     #若上語句中有問天氣且沒給地點
 #     else:
-#         mask_list = getMask(None, None, GET_EVENT["lineMessage"])
-#         if mask_list:
-#             GET_EVENT["replyList"] = [
-#                 TextSendMessage(text="以下是距離最近的10間藥局"),
-#                 FlexSendMessage(alt_text="以下是距離最近的10間藥局", contents = flexWhereMask(mask_list))
-#             ]
-#             GET_EVENT["replyLog"] = ["特約藥局查詢結果", 0, 'flex']
+#         future = True if "未來" in key(last_receives[0]['message']) else False
+#         weather = getWeather(None, None, GET_EVENT["lineMessage"], future)
+#         if weather:
+#             flexObject = flexWeather72HR(weather) if future else flexWeather(weather)
+#             GET_EVENT["replyList"] = FlexSendMessage(alt_text = flexObject[0], contents = flexObject[1])
+#             GET_EVENT["replyLog"] = [flexObject[0], 0, 'flex']
+#     return GET_EVENT
+
+# #[爬蟲查詢] 空汙查詢
+# def crawler_AQI_function(GET_EVENT):
+#     #若本語句中有問空汙
+#     if re.search("(空汙查詢)$", key(GET_EVENT["lineMessage"])):
+#         this_site = re.sub("(空汙查詢)", "", key(GET_EVENT["lineMessage"]))
+#         #若本語句中有直接給地點
+#         if this_site:
+#             aqi = getAQI(None, None, this_site)
+#             if aqi:
+#                 flexObject = flexAQI(aqi)
+#                 GET_EVENT["replyList"] = FlexSendMessage(alt_text = flexObject[0], contents = flexObject[1])
+#                 GET_EVENT["replyLog"] = [flexObject[0], 0, 'flex']
+#         #問地點
+#         else:
+#             GET_EVENT["replyList"] = FlexSendMessage(alt_text = "請輸入要查詢的位址，或傳送位址訊息", contents = flexTellMeLocation())
+#             GET_EVENT["replyLog"] = ["要查詢的地點是？", 0, 'flex']
+#     #若上語句中有問空汙且沒給地點
+#     else:
+#         aqi = getAQI(None, None, GET_EVENT["lineMessage"])
+#         if aqi:
+#             flexObject = flexAQI(aqi)
+#             GET_EVENT["replyList"] = FlexSendMessage(alt_text = flexObject[0], contents = flexObject[1])
+#             GET_EVENT["replyLog"] = [flexObject[0], 0, 'flex']
 #     return GET_EVENT
 
 #################### 功能設定 ####################
-#[功能設定] 目前等級
-def current_level_function(GET_EVENT):
-    alt = GET_EVENT["nickname"]+"的等級\nLv. "+str(GET_EVENT["level"])+"\n經驗值 "+str(GET_EVENT["exp"])+"/10"
-    GET_EVENT["replyList"] = FlexSendMessage(alt_text= alt, contents=flexLevelMenu(GET_EVENT["nickname"], GET_EVENT["level"], GET_EVENT["exp"]))
-    GET_EVENT["replyLog"] = [alt, 0, 'flex']
-    return GET_EVENT
-#[功能設定] 目前暱稱
-def current_nickname_function(GET_EVENT):
-    nickname_text = GET_EVENT["nickname"] if GET_EVENT["nickname"] else "無"
-    GET_EVENT["replyList"] = FlexSendMessage(alt_text= "目前暱稱："+nickname_text, contents=flexNicknameMenu(nickname_text))
-    GET_EVENT["replyLog"] = ["目前暱稱："+nickname_text, 0, 'flex']
-    return GET_EVENT
 #[功能設定] 目前狀態
 def current_status_function(GET_EVENT):
     status = {
@@ -202,46 +163,41 @@ def message_processer(GET_EVENT):
     #降低詞條優先度 [不限個人, 等級0+]
     elif key(GET_EVENT["lineMessage"])=="壞壞":
         GET_EVENT = bad_statement_function(GET_EVENT)
-    #指定暱稱 [個人, 等級2+]
-    elif (any(key(s['message'])=="指定暱稱" for s in last_receives[0:1]) or key(GET_EVENT["lineMessage"])=="指定暱稱") and GET_EVENT["channelId"][0]=='U' and GET_EVENT["level"]>=2:
-        GET_EVENT = edit_nickname_function(GET_EVENT)
-    #解除指定暱稱 [個人, 等級2+]
-    elif key(GET_EVENT["lineMessage"])=="解除指定暱稱" and GET_EVENT["channelId"][0]=='U' and GET_EVENT["level"]>=2:
-        GET_EVENT = cancel_nickname_function(GET_EVENT)
 
 
-    ## ==================== 爬蟲查詢 ==================== ##
-    #天氣查詢 [不限個人, 等級0+]    # 若上一句key值為「(目前天氣|未來天氣)$」且不為「地名(目前天氣|未來天氣)$」 或 本句key值為「(地名)*(目前天氣|未來天氣)$」
-    elif any((re.search("(目前天氣|未來天氣)$", key(s['message'])) and not re.sub("(目前天氣|未來天氣)", "", key(s['message']))) for s in last_receives[0:1]) or re.search("(目前天氣|未來天氣)$", key(GET_EVENT["lineMessage"])):
-        GET_EVENT = crawler_weather_function(GET_EVENT, last_receives)
-    #空汙查詢 [不限個人, 等級0+]    # 若上一句key值為「(空汙查詢)$」且不為「地名(空汙查詢)$」 或 本句key值為「(地名)*(空汙查詢)$」
-    elif any((re.search("(空汙查詢)$", key(s['message'])) and not re.sub("(空汙查詢)", "", key(s['message']))) for s in last_receives[0:1]) or re.search("(空汙查詢)$", key(GET_EVENT["lineMessage"])):
-        GET_EVENT = crawler_AQI_function(GET_EVENT)
-    #特約藥局查詢 [不限個人, 等級0+]
-    # elif any(key(s['message'])=="特約藥局查詢" for s in last_receives[0:1]) or key(GET_EVENT["lineMessage"])=="特約藥局查詢":
-    #     GET_EVENT = crawler_mask_function(GET_EVENT)
+    # ## ==================== 爬蟲查詢 ==================== ##
+    # #天氣查詢 [不限個人, 等級0+]    # 若上一句key值為「(目前天氣|未來天氣)$」且不為「地名(目前天氣|未來天氣)$」 或 本句key值為「(地名)*(目前天氣|未來天氣)$」
+    # elif any((re.search("(目前天氣|未來天氣)$", key(s['message'])) and not re.sub("(目前天氣|未來天氣)", "", key(s['message']))) for s in last_receives[0:1]) or re.search("(目前天氣|未來天氣)$", key(GET_EVENT["lineMessage"])):
+    #     GET_EVENT = crawler_weather_function(GET_EVENT, last_receives)
+    # #空汙查詢 [不限個人, 等級0+]    # 若上一句key值為「(空汙查詢)$」且不為「地名(空汙查詢)$」 或 本句key值為「(地名)*(空汙查詢)$」
+    # elif any((re.search("(空汙查詢)$", key(s['message'])) and not re.sub("(空汙查詢)", "", key(s['message']))) for s in last_receives[0:1]) or re.search("(空汙查詢)$", key(GET_EVENT["lineMessage"])):
+    #     GET_EVENT = crawler_AQI_function(GET_EVENT)
 
 
-    ## ==================== 機率運勢 [function未拆出] ==================== ##
-    #擲筊選單 [不限個人, 等級0+] 
-    elif key(GET_EVENT["lineMessage"])=="擲筊": 
-        GET_EVENT["replyList"] = FlexSendMessage(alt_text= "擲筊選單", contents=flexMenuDevinate())
-        GET_EVENT["replyLog"] = [GET_EVENT["lineMessage"], 0, 'flex']
-    #抽籤詩選單 [不限個人, 等級0+]
-    elif key(GET_EVENT["lineMessage"])=="抽籤詩":
-        GET_EVENT["replyList"] = FlexSendMessage(alt_text= "抽籤詩選單", contents=flexMenuFortuneStick())
-        GET_EVENT["replyLog"] = [GET_EVENT["lineMessage"], 0, 'flex']
-    #抽塔羅選單 [不限個人, 等級0+]
-    elif key(GET_EVENT["lineMessage"])=="抽塔羅":
-        GET_EVENT["replyList"] = FlexSendMessage(alt_text= "抽塔羅選單", contents=flexMenuTarot())
-        GET_EVENT["replyLog"] = [GET_EVENT["lineMessage"], 0, 'flex']
+    # ## ==================== 機率運勢 [function未拆出] ==================== ##
+    # #擲筊選單 [不限個人, 等級0+] 
+    # elif key(GET_EVENT["lineMessage"])=="擲筊": 
+    #     GET_EVENT["replyList"] = FlexSendMessage(alt_text= "擲筊選單", contents=flexMenuDevinate())
+    #     GET_EVENT["replyLog"] = [GET_EVENT["lineMessage"], 0, 'flex']
+    # #抽籤詩選單 [不限個人, 等級0+]
+    # elif key(GET_EVENT["lineMessage"])=="抽籤詩":
+    #     GET_EVENT["replyList"] = FlexSendMessage(alt_text= "抽籤詩選單", contents=flexMenuFortuneStick())
+    #     GET_EVENT["replyLog"] = [GET_EVENT["lineMessage"], 0, 'flex']
+    # #抽塔羅選單 [不限個人, 等級0+]
+    # elif key(GET_EVENT["lineMessage"])=="抽塔羅":
+    #     GET_EVENT["replyList"] = FlexSendMessage(alt_text= "抽塔羅選單", contents=flexMenuTarot())
+    #     GET_EVENT["replyLog"] = [GET_EVENT["lineMessage"], 0, 'flex']
     
     
     ## ==================== 教學選單 [function未拆出] ==================== ##
     #主選單 [不限個人, 等級0+]
     elif key(GET_EVENT["lineMessage"])=="主選單":
-        GET_EVENT["replyList"] = FlexSendMessage(alt_text = "主選單", contents = flexMainMenu(GET_EVENT["channelId"], GET_EVENT["level"]))
-        GET_EVENT["replyLog"] = [GET_EVENT["lineMessage"], 0, 'flex']
+        markupObj = ReplyKeyboardMarkup(
+            [[KeyboardButton("功能教學")],
+             [KeyboardButton("目前狀態")]]
+        )
+        GET_EVENT["replyList"] = [{"type": "markup", "msg": "【主選單】\n嗨，我是酷熊貓！ ", "markup": markupObj}]
+        GET_EVENT["replyLog"] = ["主選單", 0, 'markup']
     #酷熊貓會做什麼選單 [不限個人, 等級0+]
     elif key(GET_EVENT["lineMessage"])=="功能一覽":
         GET_EVENT["replyList"] = FlexSendMessage(alt_text = "功能一覽", contents = flexHowDo(GET_EVENT["channelId"], GET_EVENT["level"]))
@@ -250,10 +206,10 @@ def message_processer(GET_EVENT):
     elif key(GET_EVENT["lineMessage"])=="怎麼聊天": 
         GET_EVENT["replyList"] = FlexSendMessage(alt_text= "怎麼和我聊天", contents=flexTeachChat())
         GET_EVENT["replyLog"] = [GET_EVENT["lineMessage"], 0, 'flex']
-    #抽籤教學選單 [不限個人, 等級0+] 
-    elif key(GET_EVENT["lineMessage"])=="怎麼抽籤": 
-        GET_EVENT["replyList"] = FlexSendMessage(alt_text= "怎麼抽籤", contents=flexTeachLottery())
-        GET_EVENT["replyLog"] = [GET_EVENT["lineMessage"], 0, 'flex']
+    # #抽籤教學選單 [不限個人, 等級0+] 
+    # elif key(GET_EVENT["lineMessage"])=="怎麼抽籤": 
+    #     GET_EVENT["replyList"] = FlexSendMessage(alt_text= "怎麼抽籤", contents=flexTeachLottery())
+    #     GET_EVENT["replyLog"] = [GET_EVENT["lineMessage"], 0, 'flex']
     #學說話教學選單 [不限個人, 等級0+] 
     elif key(GET_EVENT["lineMessage"])=="怎麼學說話": 
         GET_EVENT["replyList"] = FlexSendMessage(alt_text= "怎麼教我說話", contents=flexTeachLearn())
@@ -269,39 +225,21 @@ def message_processer(GET_EVENT):
     elif key(GET_EVENT["lineMessage"])=="怎麼抽籤式回答":
         GET_EVENT["replyList"] = FlexSendMessage(alt_text= "怎麼抽籤式回答", contents=flexTeachChatRandom())
         GET_EVENT["replyLog"] = [GET_EVENT["lineMessage"], 0, 'flex']
-    #暱稱教學選單 [個人, 等級2+]
-    elif key(GET_EVENT["lineMessage"])=="怎麼指定暱稱" and GET_EVENT["channelId"][0]=='U' and GET_EVENT["level"]>=2:
-        GET_EVENT["replyList"] = FlexSendMessage(alt_text= "如何指定暱稱", contents=flexTeachNickname())
-        GET_EVENT["replyLog"] = [GET_EVENT["lineMessage"], 0, 'flex']
-    #等級說明選單 [個人, 等級0+]
-    elif key(GET_EVENT["lineMessage"])=="等級說明":
-        GET_EVENT["replyList"] = FlexSendMessage(alt_text= "等級（經驗值）說明", contents=flexTeachLevel())
-        GET_EVENT["replyLog"] = [GET_EVENT["lineMessage"], 0, 'flex']
-    #查氣象教學選單 [不限個人, 等級0+] 
-    elif key(GET_EVENT["lineMessage"])=="怎麼查氣象": 
-        GET_EVENT["replyList"] = FlexSendMessage(alt_text= "怎麼查氣象", contents=flexTeachMeteorology())
-        GET_EVENT["replyLog"] = [GET_EVENT["lineMessage"], 0, 'flex']
-    #查天氣教學選單 [不限個人, 等級0+] 
-    elif key(GET_EVENT["lineMessage"])=="怎麼查天氣": 
-        GET_EVENT["replyList"] = FlexSendMessage(alt_text= "怎麼查天氣", contents=flexTeachWeather())
-        GET_EVENT["replyLog"] = [GET_EVENT["lineMessage"], 0, 'flex']
-    #查空汙教學選單 [不限個人, 等級0+] 
-    elif key(GET_EVENT["lineMessage"])=="怎麼查空汙": 
-        GET_EVENT["replyList"] = FlexSendMessage(alt_text= "怎麼查空汙", contents=flexTeachAQI())
-        GET_EVENT["replyLog"] = [GET_EVENT["lineMessage"], 0, 'flex']
-    #查藥局教學選單 [不限個人, 等級0+] 
-    # elif key(GET_EVENT["lineMessage"])=="怎麼查藥局": 
-    #     GET_EVENT["replyList"] = FlexSendMessage(alt_text= "怎麼查藥局", contents=flexTeachMask())
+    # #查氣象教學選單 [不限個人, 等級0+] 
+    # elif key(GET_EVENT["lineMessage"])=="怎麼查氣象": 
+    #     GET_EVENT["replyList"] = FlexSendMessage(alt_text= "怎麼查氣象", contents=flexTeachMeteorology())
+    #     GET_EVENT["replyLog"] = [GET_EVENT["lineMessage"], 0, 'flex']
+    # #查天氣教學選單 [不限個人, 等級0+] 
+    # elif key(GET_EVENT["lineMessage"])=="怎麼查天氣": 
+    #     GET_EVENT["replyList"] = FlexSendMessage(alt_text= "怎麼查天氣", contents=flexTeachWeather())
+    #     GET_EVENT["replyLog"] = [GET_EVENT["lineMessage"], 0, 'flex']
+    # #查空汙教學選單 [不限個人, 等級0+] 
+    # elif key(GET_EVENT["lineMessage"])=="怎麼查空汙": 
+    #     GET_EVENT["replyList"] = FlexSendMessage(alt_text= "怎麼查空汙", contents=flexTeachAQI())
     #     GET_EVENT["replyLog"] = [GET_EVENT["lineMessage"], 0, 'flex']
     
 
     ## ==================== 功能設定 ==================== ##
-    #目前等級 [個人, 等級0+]
-    elif key(GET_EVENT["lineMessage"])=="目前等級":
-        GET_EVENT = current_level_function(GET_EVENT)
-    #目前暱稱 [個人, 等級2+]
-    elif key(GET_EVENT["lineMessage"])=="目前暱稱" and GET_EVENT["channelId"][0]=='U' and GET_EVENT["level"]>=2:
-        GET_EVENT = current_nickname_function(GET_EVENT)
     #目前狀態 [不限個人, 等級0+]
     elif key(GET_EVENT["lineMessage"])=="目前狀態":
         GET_EVENT = current_status_function(GET_EVENT)

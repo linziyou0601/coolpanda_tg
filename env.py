@@ -52,14 +52,6 @@ CONFIG = {
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
         create_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     );
-
-    CREATE TABLE IF NOT EXISTS api_key (
-        id INT AUTO_INCREMENT PRIMARY KEY,
-        name TEXT NOT NULL COMMENT "金鑰名稱",
-        secret TEXT NOT NULL COMMENT '金鑰',
-        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-        create_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-    );
     INSERT INTO tg_user (id, channel_id) VALUES (0, "autoLearn");
     UPDATE tg_user SET id = '0' WHERE tg_user.channel_id = "autoLearn";
     '''

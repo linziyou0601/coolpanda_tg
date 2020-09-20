@@ -43,14 +43,6 @@ def webhook_handler():
         dispatcher.process_update(update)
     return 'ok'
 
-# New a dispatcher for bot
-dispatcher = Dispatcher(bot, None)
-
-# Add handler for handling message, there are many kinds of message. For this handler, it particular handle text
-# message.
-dispatcher.add_handler(MessageHandler(Filters.text, handle_message))
-dispatcher.add_handler(CallbackQueryHandler(handle_callback))
-
 # ####################推播####################
 # @app.route("/pushing", methods=['POST'])
 # def pushing():
@@ -216,6 +208,15 @@ def handle_message(bot, update):
 #     GET_EVENT = location_processer(GET_EVENT, LOCATION_INFO)
 #     send_reply(GET_EVENT, True)
 
+
+
+# New a dispatcher for bot
+dispatcher = Dispatcher(bot, None)
+
+# Add handler for handling message, there are many kinds of message. For this handler, it particular handle text
+# message.
+dispatcher.add_handler(MessageHandler(Filters.text, handle_message))
+dispatcher.add_handler(CallbackQueryHandler(handle_callback))
 
 if __name__ == "__main__":
     app.run()

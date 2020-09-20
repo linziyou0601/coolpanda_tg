@@ -11,7 +11,7 @@ def markupMainMenu():
            )
 
 ##你會做什麼
-def markupHowDo(channelId, level):
+def markupHowDo():
     # return ReplyKeyboardMarkup(
     #             [[KeyboardButton('怎麼聊天')],
     #             [KeyboardButton('怎麼查氣象')], 

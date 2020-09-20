@@ -81,9 +81,7 @@ def get_event_obj(update, msg_type = None):
     userId = getUserId(update)
     ##建頻道資料
     if userId: create_channel(userId)
-    create_channel(channelId)
-    print(userId)
-    print(channelId)
+    if channelId: create_channel(channelId)
     ##取得頻道資料
     channelData = get_channel(channelId)
     userData = get_channel(userId) if userId else None

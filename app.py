@@ -68,11 +68,17 @@ def getPostfix():
 
 #取得ChannelId [如果是群組或聊天室，一樣回傳channelId，不是userId]
 def getChannelId(update):
-    return str(update.message.chat_id) if hasattr(update.message, "chat_id") else None
+    if hasattr(update, "callback_query"):
+        return str(update.callback_query.message.chat.id)
+    else:
+        return str(update.message.chat_id)
 
 #取得UserId
 def getUserId(update):
-    return str(update.message.from_user.id) if hasattr(update.message, "from_user") else None
+    if hasattr(update, "callback_query"):
+        return str(update.callback_query.from_user.id)
+    else:
+        return str(update.message.from_user.id)
 
 ####################取得EVENT物件、發送訊息####################
 def get_event_obj(update, msg_type = None):

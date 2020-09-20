@@ -5,30 +5,16 @@ CONFIG = {
     "DB_DATABASE": "coolpanda",
 
     "DB_CREATE_TABLE": '''
-    CREATE TABLE IF NOT EXISTS line_user (
+    CREATE TABLE IF NOT EXISTS tg_user (
         id INT AUTO_INCREMENT PRIMARY KEY,
         channel_id TEXT NOT NULL COMMENT "頻道 ID",
-        exp INT DEFAULT 0 COMMENT "經驗值",
-        nickname TEXT COMMENT "暱稱",
         mute TINYINT DEFAULT 0 COMMENT "0=可以聊天, 1=安靜",
         global_talk TINYINT DEFAULT 1 COMMENT "0=這裡教的話, 1=所有人教的話",
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
         create_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     );
 
-    CREATE TABLE IF NOT EXISTS line_statement (
-        id INT AUTO_INCREMENT PRIMARY KEY,
-        keyword TEXT NOT NULL COMMENT "關鍵字",
-        response TEXT NOT NULL COMMENT "回覆內容",
-        channel_pk INT COMMENT "建立者頻道 ID",
-        user_pk INT COMMENT "建立者 ID",
-        checked TEXT COMMENT "可疑詞標記",
-        priority INT DEFAULT 4 COMMENT "詞條優先度",
-        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-        create_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-    );
-
-    CREATE TABLE IF NOT EXISTS line_replied (
+    CREATE TABLE IF NOT EXISTS tg_replied (
         id INT AUTO_INCREMENT PRIMARY KEY,
         type TEXT NOT NULL COMMENT "訊息種類",
         message TEXT NOT NULL COMMENT "訊息內容",
@@ -38,7 +24,7 @@ CONFIG = {
         create_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     );
 
-    CREATE TABLE IF NOT EXISTS line_received (
+    CREATE TABLE IF NOT EXISTS tg_received (
         id INT AUTO_INCREMENT PRIMARY KEY,
         type TEXT NOT NULL COMMENT "訊息種類",
         message TEXT NOT NULL COMMENT "訊息內容",
@@ -48,7 +34,7 @@ CONFIG = {
         create_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     );
 
-    CREATE TABLE IF NOT EXISTS line_pushed (
+    CREATE TABLE IF NOT EXISTS tg_pushed (
         id INT AUTO_INCREMENT PRIMARY KEY,
         type TEXT NOT NULL COMMENT "訊息種類",
         title TEXT NOT NULL COMMENT "訊息標題",
@@ -58,30 +44,11 @@ CONFIG = {
         create_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     );
 
-    CREATE TABLE IF NOT EXISTS line_postfix (
+    CREATE TABLE IF NOT EXISTS tg_postfix (
         id INT AUTO_INCREMENT PRIMARY KEY,
         start_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT "啟始日期",
         last_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT "結束日期",
         content TEXT NOT NULL COMMENT "後綴內容",
-        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-        create_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-    );
-
-    CREATE TABLE IF NOT EXISTS line_temp_statement (
-        id INT AUTO_INCREMENT PRIMARY KEY,
-        keyword TEXT NOT NULL COMMENT "關鍵字",
-        response TEXT NOT NULL COMMENT "回覆內容",
-        channel_pk INT TEXT COMMENT "建立者頻道 ID",
-        user_pk INT TEXT COMMENT "建立者 ID",
-        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-        create_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-    );
-
-    CREATE TABLE IF NOT EXISTS line_location (
-        id INT AUTO_INCREMENT PRIMARY KEY,
-        address TEXT NOT NULL COMMENT "地址",
-        lat double NOT NULL COMMENT '經度',
-        lng double NOT NULL COMMENT '緯度',
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
         create_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     );
@@ -93,8 +60,8 @@ CONFIG = {
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
         create_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     );
-    INSERT INTO line_user (id, channel_id) VALUES (0, "autoLearn");
-    UPDATE line_user SET id = '0' WHERE line_user.channel_id = "autoLearn";
+    INSERT INTO tg_user (id, channel_id) VALUES (0, "autoLearn");
+    UPDATE tg_user SET id = '0' WHERE tg_user.channel_id = "autoLearn";
     '''
 }
 

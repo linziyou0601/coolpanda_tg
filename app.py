@@ -6,17 +6,17 @@ import os, json, codecs, re, random
 import telegram
 from telegram.ext import Dispatcher, MessageHandler, Filters
 
-# #導入env, model
-# from env import *
-# from model import *
+#導入env, model
+from env import *
+from model import *
 # #導入Others
 # from Others.flexMessageJSON import *
 # #導入Controllers
 # from Controllers.messageController import *
 # from Controllers.locationController import *
 # from Controllers.postbackController import *
-# #導入Managers
-# from Managers.channelManager import *
+#導入Managers
+from Managers.channelManager import *
 # from Managers.messageManager import *
 # from Managers.statementManager import *
 # #導入Services
@@ -24,7 +24,7 @@ from telegram.ext import Dispatcher, MessageHandler, Filters
 
 app = Flask(__name__)
 
-bot = telegram.Bot(token=('1110974908:AAFWl8uSn3ot4CJkaLKsQt85h1pSl3e_UeQ'))
+bot = telegram.Bot(token=(GET_SECRET("TELEGRAM_TOKEN")))
 bot.send_message(chat_id = '863052781', text ='你可以開始了')
 
 ####################檢查uWSGI->Flask是否正常運作####################
@@ -46,7 +46,7 @@ def webhook_handler():
 ####################自動回復####################
 def reply_handler(bot, update):
     """自動回復"""
-    text = update.message.text
+    text = update.message.text + str(update.message["from"]["id"])
     update.message.reply_text(text)
 
 # New a dispatcher for bot
@@ -55,26 +55,6 @@ dispatcher = Dispatcher(bot, None)
 # Add handler for handling message, there are many kinds of message. For this handler, it particular handle text
 # message.
 dispatcher.add_handler(MessageHandler(Filters.text, reply_handler))
-
-####################一般callback####################
-# @app.route("/callback", methods=['POST'])
-# def callback():
-#     # get X-Line-Signature header value
-#     signature = request.headers['X-Line-Signature']
-
-#     # get request body as text
-#     body = request.get_data(as_text=True)
-#     app.logger.info("Request body: " + body)
-
-#     # handle webhook body
-#     try:
-#         create_table()
-#         handler.handle(body, signature)
-#     except InvalidSignatureError:
-#         print("Invalid signature. Please check your channel access token/channel secret.")
-#         abort(400)
-
-#     return 'OK'
 
 # ####################推播####################
 # @app.route("/pushing", methods=['POST'])
@@ -88,43 +68,12 @@ dispatcher.add_handler(MessageHandler(Filters.text, reply_handler))
 #     status = pushing_process(mtype, title, message, channel_id) if template == None else pushing_template(title, message, channel_id, template)
 #     return json.dumps({'msg': status})
 
-# ####################[匯入, 拉黑, JSON]: [詞條]####################
-# #詞條拉黑
-# @app.route("/operateStatement", methods=['POST'])
-# def operateStatement():
-#     data = json.loads(request.get_data())
-#     action = data["action"]
-#     adjust = data["adjust"]
-#     statement_id = data["statement_id"]
-#     operate_statement(action, adjust, statement_id)
-#     return json.dumps({'msg': 'ok'})
-
-# #匯入詞條
-# @app.route("/importStatement", methods=['POST'])
-# def importStatement():
-#     data = json.loads(request.get_data())
-#     for item in data["data"]:
-#         create_statement(item["keyword"], item["response"], 0, 0)
-#     return json.dumps({'msg': 'ok'})
-
-# #詞條轉JSON
-# @app.route("/getStatementJSON", methods=['POST'])
-# def getStatementJSON():
-#     data = json.loads(request.get_data())
-#     channel_id = data["channel_id"] if data["channel_id"] and data["channel_id"]!="ALL" else "ALL"
-#     return json.dumps(get_line_statement_table(channel_id))
-
-# #推播紀錄轉JSON
-# @app.route("/getPushedJSON", methods=['POST'])
-# def getPushedJSON():
-#     return json.dumps(get_line_pushed_table())
-
-# ####################小功能####################
-# ##隨機產生後綴字
-# def getPostfix():
-#     p = random.randint(1,10)
-#     postfix = get_postfix() if get_postfix() and p%5==0 else ""
-#     return postfix
+####################小功能####################
+##隨機產生後綴字
+def getPostfix():
+    p = random.randint(1,10)
+    postfix = get_postfix() if get_postfix() and p%5==0 else ""
+    return postfix
 
 # #貼圖unicode轉line編碼 [請傳入 sticon(u"\U數字") ]
 # def sticon(unic):

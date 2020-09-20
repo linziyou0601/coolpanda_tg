@@ -193,8 +193,8 @@ def message_processer(GET_EVENT):
         GET_EVENT["replyLog"] = ["主選單", 0, 'markup']
     #酷熊貓會做什麼選單 [不限個人, 等級0+]
     elif key(GET_EVENT["lineMessage"])=="功能一覽":
-        GET_EVENT["replyList"] = [{"type": "markup", "msg": "功能一覽", "markup": markupMainMenu()}]
-        GET_EVENT["replyLog"] = ["主選單", 0, 'markup']
+        GET_EVENT["replyList"] = [{"type": "markup", "msg": "功能一覽", "markup": markupHowDo()}]
+        GET_EVENT["replyLog"] = [GET_EVENT["lineMessage"], 0, 'markup']
     #聊天教學選單 [不限個人, 等級0+] 
     elif key(GET_EVENT["lineMessage"])=="怎麼聊天": 
         markupObject = markupTeachChat()

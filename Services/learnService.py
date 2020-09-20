@@ -32,14 +32,14 @@ X [（貼圖A／位置A）→（文字回答B／關鍵字回答B／圖片回答B
 ##手動反饋學習
 def feedback_learn_model(key, res):
     #學習 [key → 文字res／關鍵字res／圖片res]
-    rand = 1 if res in ['樹懶', '抽籤'] else 0
+    rand = 1 if res in ['熊貓', '抽籤'] else 0
     firstIndex = 0 if not rand else 2
     adjust_priority(1, key[firstIndex:], res)
 
 ##手動反饋學習
 def feedback_abandon_model(key, res):
     #降權重 [key → 文字res／關鍵字res／圖片res]
-    rand = 1 if res in ['樹懶', '抽籤'] else 0
+    rand = 1 if res in ['熊貓', '抽籤'] else 0
     firstIndex = 0 if not rand else 2
     adjust_priority(-2, key[firstIndex:], res)
 

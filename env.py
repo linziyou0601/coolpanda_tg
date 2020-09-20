@@ -52,10 +52,12 @@ CONFIG = {
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
         create_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     );
-    INSERT INTO tg_user (id, channel_id) VALUES (0, "autoLearn");
-    UPDATE tg_user SET id = '0' WHERE tg_user.channel_id = "autoLearn";
+    
     '''
 }
+
+# INSERT INTO tg_user (id, channel_id) VALUES (0, "autoLearn");
+# UPDATE tg_user SET id = '0' WHERE tg_user.channel_id = "autoLearn";
 
 def ENV(key, default=None):
     return CONFIG.get(key, default)

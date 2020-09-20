@@ -123,6 +123,8 @@ def send_reply(update, GET_EVENT, STORE_LOG = False):
             update.message.reply_text(replyMsg["msg"])
         if replyMsg["type"] == "markup":
             update.message.reply_text(replyMsg["msg"], reply_markup = replyMsg["markup"])
+        if replyMsg["type"] == "edit_message_text":
+            update.edit_message_text(replyMsg["msg"])
 
 # ####################[加入, 退出]: [好友, 聊天窗]####################
 # @handler.add(FollowEvent)

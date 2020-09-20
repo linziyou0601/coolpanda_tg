@@ -68,11 +68,11 @@ def getPostfix():
 
 #取得ChannelId [如果是群組或聊天室，一樣回傳channelId，不是userId]
 def getChannelId(update):
-    return str(update.message.chat_id)
+    return str(update.message.chat_id) if hasattr(update.message, "chat_id") else None
 
 #取得UserId
 def getUserId(update):
-    return str(update.message.from_user.id)
+    return str(update.message.from_user.id) if hasattr(update.message, "from_user") else None
 
 ####################取得EVENT物件、發送訊息####################
 def get_event_obj(update, msg_type = None):
@@ -114,6 +114,8 @@ def send_reply(update, GET_EVENT, STORE_LOG = False):
     ####回傳給TELEGRAM
     for replyMsg in GET_EVENT["replyList"]:
         if replyMsg["type"] == "text":
+            update.message.reply_text(replyMsg["msg"])
+        if replyMsg["type"] == "image":
             update.message.reply_text(replyMsg["msg"])
         if replyMsg["type"] == "markup":
             update.message.reply_text(replyMsg["msg"], reply_markup = replyMsg["markup"])

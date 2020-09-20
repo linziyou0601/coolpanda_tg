@@ -28,11 +28,8 @@ def learn_statement_function(GET_EVENT, last_receives):
         GET_EVENT["replyLog"] = ["我要回應什麼？", 0, 'text']
     else:
         temp_id = create_temp_statement(last_receives[0]['message'], GET_EVENT["lineMessage"], GET_EVENT["channelPK"], last_receives[1]['user_pk'])
-        markupObj = InlineKeyboardMarkup(
-            [[InlineKeyboardButton("是的沒錯", callback_data="action=confirm_learn&id="+str(temp_id)),
-              InlineKeyboardButton("這句母湯", callback_data="action=cancel_learn&id="+str(temp_id))]]
-        )
-        GET_EVENT["replyList"] = [{"type": "markup", "msg": "確認詞條內容\n【我看到】 "+last_receives[0]['message']+"\n【我要回】 "+GET_EVENT["lineMessage"], "markup": markupObj}]
+        markupObject = markupLearnConfirm(last_receives[0]['message'], GET_EVENT["lineMessage"], temp_id)
+        GET_EVENT["replyList"] = [{"type": "markup", "msg": markupObject[0], "markup": markupObject[1]}]
         GET_EVENT["replyLog"] = ["確認詞條內容", 0, 'markup']
     return GET_EVENT
 
@@ -107,23 +104,23 @@ def current_status_function(GET_EVENT):
         "global_talk": GET_EVENT['global_talk'], 
         "mute": GET_EVENT['mute']
     }
-    flexObject = flexStatusMenu(status)
-    GET_EVENT["replyList"] = FlexSendMessage(alt_text= flexObject[0], contents=flexObject[1])
-    GET_EVENT["replyLog"] = [flexObject[0], 0, 'flex']
+    markupObject = markupStatusMenu(status)
+    GET_EVENT["replyList"] = [{"type": "markup", "msg": markupObject[0], "markup": markupObject[1]}]
+    GET_EVENT["replyLog"] = ["目前狀態", 0, 'markup']
     return GET_EVENT
 #[功能設定] 說話模式調整
 def edit_global_talk_function(GET_EVENT):
     if any((s+"說別人教的話") in GET_EVENT["lineMessage"] for s in ["不可以", "不能", "不行", "不要", "不准"]): edit_channel_global_talk(GET_EVENT["channelId"], 0)
     elif "說別人教的話" in GET_EVENT["lineMessage"]: edit_channel_global_talk(GET_EVENT["channelId"], 1)
-    GET_EVENT["replyList"] = TextSendMessage(text="好哦～"+GET_EVENT["postfix"])
-    GET_EVENT["replyLog"] = [GET_EVENT["lineMessage"], 0, 'text']
+    GET_EVENT["replyList"] = [{"type": "text", "msg": "好哦～"+GET_EVENT["postfix"]}]
+    GET_EVENT["replyLog"] = ["好哦～", 0, 'text']
     return GET_EVENT
 #[功能設定] 安靜開關
 def edit_mute_function(GET_EVENT):
     if any(s in GET_EVENT["lineMessage"] for s in ["熊貓說話", "熊貓講話"]): edit_channel_mute(GET_EVENT["channelId"], 0)
     elif any(s in GET_EVENT["lineMessage"] for s in ["熊貓安靜", "熊貓閉嘴"]): edit_channel_mute(GET_EVENT["channelId"], 1)
-    GET_EVENT["replyList"] = TextSendMessage(text="好哦～"+GET_EVENT["postfix"])
-    GET_EVENT["replyLog"] = [GET_EVENT["lineMessage"], 0, 'text']
+    GET_EVENT["replyList"] = [{"type": "text", "msg": "好哦～"+GET_EVENT["postfix"]}]
+    GET_EVENT["replyLog"] = ["好哦～", 0, 'text']
     return GET_EVENT
 
 #################### 聊天 ####################
@@ -146,9 +143,9 @@ def chat_function(GET_EVENT):
         GET_EVENT["replyLog"] = [GET_EVENT["lineMessage"], 0, 'text']
     #本次要回的話
     if GET_EVENT["replyLog"][2]=='image':
-        GET_EVENT["replyList"] = ImageSendMessage(original_content_url=GET_EVENT["replyLog"][0], preview_image_url=GET_EVENT["replyLog"][0])
+        GET_EVENT["replyList"] = [{"type": "image", "msg": GET_EVENT["replyLog"][0]}]  
     else:
-        GET_EVENT["replyList"] = TextSendMessage(text=GET_EVENT["replyLog"][0]+GET_EVENT["postfix"]) if GET_EVENT["replyLog"][0]!='我聽不懂啦！' or GET_EVENT["channelId"][0]=='U' else []
+        GET_EVENT["replyList"] = [{"type": "text", "msg": GET_EVENT["replyLog"][0]+GET_EVENT["postfix"]}] if GET_EVENT["replyLog"][0]!='我聽不懂啦！' or GET_EVENT["channelId"][0]=='U' else []
     return GET_EVENT
 
 
@@ -192,39 +189,38 @@ def message_processer(GET_EVENT):
     ## ==================== 教學選單 [function未拆出] ==================== ##
     #主選單 [不限個人, 等級0+]
     elif key(GET_EVENT["lineMessage"])=="主選單":
-        markupObj = ReplyKeyboardMarkup(
-            [[KeyboardButton("功能教學")],
-             [KeyboardButton("目前狀態")]]
-        )
-        GET_EVENT["replyList"] = [{"type": "markup", "msg": "【主選單】\n嗨，我是酷熊貓！ ", "markup": markupObj}]
+        GET_EVENT["replyList"] = [{"type": "markup", "msg": "【主選單】\n嗨，我是酷熊貓！ ", "markup": markupMainMenu()}]
         GET_EVENT["replyLog"] = ["主選單", 0, 'markup']
     #酷熊貓會做什麼選單 [不限個人, 等級0+]
     elif key(GET_EVENT["lineMessage"])=="功能一覽":
-        GET_EVENT["replyList"] = FlexSendMessage(alt_text = "功能一覽", contents = flexHowDo(GET_EVENT["channelId"], GET_EVENT["level"]))
-        GET_EVENT["replyLog"] = [GET_EVENT["lineMessage"], 0, 'flex']
+        GET_EVENT["replyList"] = [{"type": "markup", "msg": "功能一覽", "markup": markupMainMenu()}]
+        GET_EVENT["replyLog"] = ["主選單", 0, 'markup']
     #聊天教學選單 [不限個人, 等級0+] 
     elif key(GET_EVENT["lineMessage"])=="怎麼聊天": 
-        GET_EVENT["replyList"] = FlexSendMessage(alt_text= "怎麼和我聊天", contents=flexTeachChat())
-        GET_EVENT["replyLog"] = [GET_EVENT["lineMessage"], 0, 'flex']
+        markupObject = markupTeachChat()
+        GET_EVENT["replyList"] = [{"type": "markup", "msg": markupObject[0], "markup": markupObject[1]}]
+        GET_EVENT["replyLog"] = [GET_EVENT["lineMessage"], 0, 'markup']
     # #抽籤教學選單 [不限個人, 等級0+] 
     # elif key(GET_EVENT["lineMessage"])=="怎麼抽籤": 
     #     GET_EVENT["replyList"] = FlexSendMessage(alt_text= "怎麼抽籤", contents=flexTeachLottery())
     #     GET_EVENT["replyLog"] = [GET_EVENT["lineMessage"], 0, 'flex']
     #學說話教學選單 [不限個人, 等級0+] 
     elif key(GET_EVENT["lineMessage"])=="怎麼學說話": 
-        GET_EVENT["replyList"] = FlexSendMessage(alt_text= "怎麼教我說話", contents=flexTeachLearn())
-        GET_EVENT["replyLog"] = [GET_EVENT["lineMessage"], 0, 'flex']
+        markupObject = markupTeachLearn()
+        GET_EVENT["replyList"] = [{"type": "markup", "msg": markupObject[0], "markup": markupObject[1]}]
+        GET_EVENT["replyLog"] = [GET_EVENT["lineMessage"], 0, 'markup']
     #本聊天窗所有教過的東西 [不限個人, 等級0+]
     elif key(GET_EVENT["lineMessage"])=="學過的話":
         ##你會說什麼
-        nickname = "這裡" if GET_EVENT["channelId"][0]!='U' else GET_EVENT["nickname"] if GET_EVENT["nickname"] else "你"
-        flexObject = flexWhatCanSay(get_all_statement(GET_EVENT["channelPK"], nickname))
-        GET_EVENT["replyList"] = FlexSendMessage(alt_text= flexObject[0], contents=flexObject[1])
-        GET_EVENT["replyLog"] = [flexObject[0], 0, 'flex']
+        nickname = "這裡" if GET_EVENT["channelId"][0]!='U' else "你"
+        flexObject = markupWhatCanSay(get_all_statement(GET_EVENT["channelPK"], nickname))
+        GET_EVENT["replyList"] = [{"type": "text", "msg": markupObject[0]}]
+        GET_EVENT["replyLog"] = [GET_EVENT["lineMessage"], 0, 'markup']
     #抽籤式回答教學選單 [不限個人, 等級0+]
     elif key(GET_EVENT["lineMessage"])=="怎麼抽籤式回答":
-        GET_EVENT["replyList"] = FlexSendMessage(alt_text= "怎麼抽籤式回答", contents=flexTeachChatRandom())
-        GET_EVENT["replyLog"] = [GET_EVENT["lineMessage"], 0, 'flex']
+        markupObject = markupTeachChatRandom()
+        GET_EVENT["replyList"] = [{"type": "markup", "msg": markupObject[0], "markup": markupObject[1]}]
+        GET_EVENT["replyLog"] = [GET_EVENT["lineMessage"], 0, 'markup']
     # #查氣象教學選單 [不限個人, 等級0+] 
     # elif key(GET_EVENT["lineMessage"])=="怎麼查氣象": 
     #     GET_EVENT["replyList"] = FlexSendMessage(alt_text= "怎麼查氣象", contents=flexTeachMeteorology())
@@ -260,21 +256,8 @@ def message_processer(GET_EVENT):
     ## ==================== 訊息反饋建立區 ==================== ##
     if GET_EVENT["replyLog"][1]:
         temp_id = create_temp_statement(GET_EVENT["lineMessage"], GET_EVENT["replyLog"][0], 0, 0)
-        if GET_EVENT["replyLog"][2]=='image':
-            GET_EVENT["replyList"] = [
-                ImageSendMessage(original_content_url=GET_EVENT["replyLog"][0], preview_image_url=GET_EVENT["replyLog"][0]),
-                FlexSendMessage(alt_text="這則回應對你有幫助嗎？", contents=flexResponseOnlyFeedback(temp_id))
-            ]
-        elif any(s in GET_EVENT["replyLog"][0] for s in ['https://', 'http://']):
-            GET_EVENT["replyList"] = [
-                TextSendMessage(text=GET_EVENT["replyLog"][0]+GET_EVENT["postfix"]),
-                FlexSendMessage(alt_text="這則回應對你有幫助嗎？", contents=flexResponseOnlyFeedback(temp_id))
-            ]
-        else:
-            GET_EVENT["replyList"] = FlexSendMessage(
-                alt_text=(GET_EVENT["replyLog"][0]+GET_EVENT["postfix"])[0:400], 
-                contents=flexResponse(GET_EVENT["replyLog"][0]+GET_EVENT["postfix"],temp_id)
-            )
+        markupObject = markupResponseFeedback(last_receives[0]['message'], GET_EVENT["lineMessage"], temp_id)
+        GET_EVENT["replyList"] = [{"type": "markup", "msg": markupObject[0], "markup": markupObject[1]}]
     
     ##回傳
     return GET_EVENT

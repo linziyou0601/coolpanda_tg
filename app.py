@@ -169,7 +169,7 @@ def handle_callback(bot, update):
     
     ##發送回覆
     GET_EVENT = postback_processer(GET_EVENT, data)
-    send_reply(GET_EVENT, False)
+    send_reply(update, GET_EVENT, False)
 
 ####################文字訊息處理區####################
 def handle_message(bot, update):
@@ -179,7 +179,7 @@ def handle_message(bot, update):
 
     ##發送
     GET_EVENT = message_processer(GET_EVENT)
-    send_reply(GET_EVENT, True)
+    send_reply(update, GET_EVENT, True)
 
 # ####################貼圖訊息處理區#################### 
 # @handler.add(MessageEvent, message=StickerMessage)

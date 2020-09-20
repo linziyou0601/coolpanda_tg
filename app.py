@@ -124,6 +124,7 @@ def send_reply(update, GET_EVENT, STORE_LOG = False):
         if replyMsg["type"] == "markup":
             update.message.reply_text(replyMsg["msg"], reply_markup = replyMsg["markup"])
         if replyMsg["type"] == "edit_message_text":
+            print(replyMsg["msg"])
             update.callback_query.edit_message_text(replyMsg["msg"])
 
 # ####################[加入, 退出]: [好友, 聊天窗]####################
@@ -174,7 +175,6 @@ def handle_callback(bot, update):
     ##取得EVENT物件
     GET_EVENT = get_event_obj(update, "callback")
     data = parse_qs(update.callback_query.data)
-    print(data)
     
     ##發送回覆
     GET_EVENT = postback_processer(GET_EVENT, data)

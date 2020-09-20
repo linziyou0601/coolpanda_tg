@@ -3,7 +3,6 @@
 #==============================================#
 ##主選單
 def flexMainMenu(channelId, level):
-    content = 
     return {
         "type": "bubble",
         "direction": "ltr",

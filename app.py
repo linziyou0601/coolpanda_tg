@@ -60,10 +60,6 @@ def getPostfix():
     postfix = get_postfix() if get_postfix() and p%5==0 else ""
     return postfix
 
-# #貼圖unicode轉line編碼 [請傳入 sticon(u"\U數字") ]
-# def sticon(unic):
-#     return codecs.decode(json.dumps(unic).strip('"'), 'unicode_escape')
-
 #取得ChannelId [如果是群組或聊天室，一樣回傳channelId，不是userId]
 def getChannelId(update, msg_type):
     if msg_type == "callback":
@@ -118,7 +114,8 @@ def send_reply(update, GET_EVENT, STORE_LOG = False):
         if replyMsg["type"] == "text":
             update.message.reply_text(replyMsg["msg"], reply_markup = replyMsg.get('markup', None), parse_mode=ParseMode.MARKDOWN)
         if replyMsg["type"] == "image":
-            update.message.reply_photo(photo = replyMsg["msg"], reply_markup = replyMsg.get('markup', None))
+            update.message.reply_photo(photo = replyMsg["msg"])
+            update.message.reply_text("這則訊息對你有幫助嗎？", reply_markup = replyMsg.get('markup', None), parse_mode=ParseMode.MARKDOWN)
         if replyMsg["type"] == "markup":
             update.message.reply_text(replyMsg["msg"], reply_markup = replyMsg.get('markup', None), parse_mode=ParseMode.MARKDOWN)
         if replyMsg["type"] == "edit_message_text":

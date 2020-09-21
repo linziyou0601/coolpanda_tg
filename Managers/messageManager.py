@@ -58,23 +58,17 @@ bot = telegram.Bot(token=(GET_SECRET("TELEGRAM_TOKEN")))
 
 #一般推播處理
 def pushing_process(type, content, channelId):
-    data = {}
-    try:
-        data = json.loads(content)
-    except:
-        return 'fail'
-    
     message = ""
     markup = None
     record = ""
     if type == 'text':
-        message = data["msg"]
+        message = content["msg"]
     elif type == 'markup':
-        message = data["msg"]
-        markup = json.stringify(data["markup"])
+        message = content["msg"]
+        markup = json.stringify(content["markup"])
     elif type == 'image':
-        if 'https://' in data["msg"] and any(x in data["msg"] for x in ['.jpg','.jpeg','.png']):
-            message = data["msg"]
+        if 'https://' in content["msg"] and any(x in content["msg"] for x in ['.jpg','.jpeg','.png']):
+            message = content["msg"]
         else:
             return 'fail'
     

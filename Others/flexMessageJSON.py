@@ -83,9 +83,9 @@ def markupWhatCanSay(object):
     rslString=""
     if object["resData"]:
         for k, v in object["resData"].items():
-            rslString = rslString + "**" + k  + "**" +  ' ↓\n' + '\n'.join(v) + '\n----------\n'
+            rslString = rslString + " `" + k  + "` " +  ' ↓\n' + '\n'.join(v) + '\n----------\n\n'
     return [
-        object["nickname"]+"教我說的話：\n" + rslString, 
+        object["nickname"]+"教我說的話：\n\n" + rslString, 
     ]
 
 #==========功能==========#

@@ -118,7 +118,7 @@ def send_reply(update, GET_EVENT, STORE_LOG = False):
         if replyMsg["type"] == "text":
             update.message.reply_text(replyMsg["msg"], reply_markup = replyMsg.get('markup', None), parse_mode=ParseMode.MARKDOWN)
         if replyMsg["type"] == "image":
-            update.message.reply_text(photo = replyMsg["msg"], reply_markup = replyMsg.get('markup', None))
+            update.message.reply_text(photo = replyMsg["msg"], text = replyMsg["msg"], reply_markup = replyMsg.get('markup', None), parse_mode=ParseMode.MARKDOWN)
         if replyMsg["type"] == "markup":
             update.message.reply_text(replyMsg["msg"], reply_markup = replyMsg.get('markup', None), parse_mode=ParseMode.MARKDOWN)
         if replyMsg["type"] == "edit_message_text":

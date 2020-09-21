@@ -72,7 +72,7 @@ def pushing_process(type, content, channelId):
         else:
             return 'fail'
     
-    record = content
+    record = json.dumps(content)
 
     return pushing_to_channel(type, message, markup, channelId, record)
 

@@ -23,27 +23,27 @@ def postback_processer(GET_EVENT, data):
         temp_statement = get_temp_statement(data['id'][0])
         if temp_statement:
             create_statement(temp_statement['keyword'], [temp_statement['response']], temp_statement['channel_pk'], temp_statement['user_pk'])
-            GET_EVENT["replyList"] = [{"type": "edit_message_text", "msg": "好哦已新增～"+GET_EVENT["postfix"]}]
+            GET_EVENT["replyList"] = [{"type": "edit_message_reply_markup", "markup": json.dumps({"inline_keyboard":[[{"text": "感謝您的回饋～"+GET_EVENT["postfix"], "callback_data": "action=skip"}]]}) }]
     ##放棄詞條內容
     if data['action'][0]=='cancel_learn':
         temp_statement = get_temp_statement(data['id'][0])
         if temp_statement:
             delete_temp_statement(data['id'][0])
-            GET_EVENT["replyList"] = [{"type": "edit_message_text", "msg": "已放棄新增～"+GET_EVENT["postfix"]}]
+            GET_EVENT["replyList"] = [{"type": "edit_message_reply_markup", "markup": json.dumps({"inline_keyboard":[[{"text": "感謝您的回饋～"+GET_EVENT["postfix"], "callback_data": "action=skip"}]]}) }]
     #----------------------------------------#
     ##詞條有幫助
     if data['action'][0]=='valid_response':
         temp_statement = get_temp_statement(data['id'][0])
         if temp_statement:
             feedback_learn_model(temp_statement['keyword'], temp_statement['response'])
-            GET_EVENT["replyList"] = [{"type": "edit_message_text", "msg": "感謝您的回饋～"+GET_EVENT["postfix"]}]
+            GET_EVENT["replyList"] = [{"type": "edit_message_reply_markup", "markup": json.dumps({"inline_keyboard":[[{"text": "感謝您的回饋～"+GET_EVENT["postfix"], "callback_data": "action=skip"}]]}) }]
     ##詞條無幫助
     if data['action'][0]=='refuse_response':
         temp_statement = get_temp_statement(data['id'][0])
         if temp_statement:
             delete_temp_statement(data['id'][0])
             feedback_abandon_model(temp_statement['keyword'], temp_statement['response'])
-            GET_EVENT["replyList"] = [{"type": "edit_message_text", "msg": "感謝您的回饋～"+GET_EVENT["postfix"]}]
+            GET_EVENT["replyList"] = [{"type": "edit_message_reply_markup", "markup": json.dumps({"inline_keyboard":[[{"text": "感謝您的回饋～"+GET_EVENT["postfix"], "callback_data": "action=skip"}]]}) }]
     #----------------------------------------#
     # ##傳送地點內容
     # if data['action'][0]=='get_map':

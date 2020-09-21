@@ -114,12 +114,11 @@ def send_reply(update, GET_EVENT, STORE_LOG = False):
         if replyMsg["type"] == "text":
             update.message.reply_text(replyMsg["msg"], reply_markup = replyMsg.get('markup', None), parse_mode=ParseMode.MARKDOWN)
         if replyMsg["type"] == "image":
-            update.message.reply_photo(photo = replyMsg["msg"])
-            update.message.reply_text("這則訊息對你有幫助嗎？", reply_markup = replyMsg.get('markup', None), parse_mode=ParseMode.MARKDOWN)
+            update.message.reply_photo(photo = replyMsg["msg"], reply_markup = replyMsg.get('markup', None), parse_mode=ParseMode.MARKDOWN)
         if replyMsg["type"] == "markup":
             update.message.reply_text(replyMsg["msg"], reply_markup = replyMsg.get('markup', None), parse_mode=ParseMode.MARKDOWN)
-        if replyMsg["type"] == "edit_message_text":
-            update.callback_query.edit_message_text(replyMsg["msg"])
+        if replyMsg["type"] == "edit_message_reply_markup":
+            update.callback_query.edit_message_reply_markup(reply_markup=replyMsg["markup"])
 
 ####################CallbackEvent處理區#################### 
 def handle_callback(bot, update):

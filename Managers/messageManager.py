@@ -57,7 +57,7 @@ def get_line_pushed_table():
 bot = telegram.Bot(token=(GET_SECRET("TELEGRAM_TOKEN")))
 
 #一般推播處理
-def pushing_process(bot, type, content, channelId):
+def pushing_process(type, content, channelId):
     data = {}
     try:
         data = json.loads(content)

@@ -257,7 +257,7 @@ def message_processer(GET_EVENT):
     if GET_EVENT["replyLog"][1]:
         temp_id = create_temp_statement(GET_EVENT["lineMessage"], GET_EVENT["replyLog"][0], 0, 0)
         markupObject = markupResponseFeedback(GET_EVENT["replyList"][0]["msg"], temp_id)
-        GET_EVENT["replyList"] = [{"type": "markup", "msg": markupObject[0], "markup": markupObject[1]}]
+        GET_EVENT["replyList"] = [{"type": GET_EVENT["replyList"][0]["type"], "msg": markupObject[0], "markup": markupObject[1]}]
     
     ##回傳
     return GET_EVENT

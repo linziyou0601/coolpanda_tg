@@ -116,57 +116,13 @@ def send_reply(update, GET_EVENT, STORE_LOG = False):
     ####回傳給TELEGRAM
     for replyMsg in GET_EVENT["replyList"]:
         if replyMsg["type"] == "text":
-            update.message.reply_text(replyMsg["msg"], parse_mode=ParseMode.MARKDOWN)
+            update.message.reply_text(replyMsg["msg"], reply_markup = replyMsg.get('markup', None), parse_mode=ParseMode.MARKDOWN)
         if replyMsg["type"] == "image":
-            update.message.reply_text(replyMsg["msg"], parse_mode=ParseMode.MARKDOWN)
+            update.message.reply_text(photo = replyMsg["msg"], reply_markup = replyMsg.get('markup', None))
         if replyMsg["type"] == "markup":
-            update.message.reply_text(replyMsg["msg"], reply_markup = replyMsg["markup"], parse_mode=ParseMode.MARKDOWN)
+            update.message.reply_text(replyMsg["msg"], reply_markup = replyMsg.get('markup', None), parse_mode=ParseMode.MARKDOWN)
         if replyMsg["type"] == "edit_message_text":
-            print(replyMsg["msg"])
             update.callback_query.edit_message_text(replyMsg["msg"])
-
-# ####################[加入, 退出]: [好友, 聊天窗]####################
-# @handler.add(FollowEvent)
-# def handle_follow(event):
-#     ##取得EVENT物件
-#     GET_EVENT = get_event_obj(event)
-#     flexObject = flexStatusMenu({
-#         "global_talk_text": "所有人教的" if GET_EVENT['global_talk'] else "本頻道教的", 
-#         "mute_text": "安靜" if GET_EVENT['mute'] else "可以說話", 
-#         "global_talk": GET_EVENT['global_talk'], 
-#         "mute": GET_EVENT['mute']
-#     })
-#     GET_EVENT["replyList"] = [
-#         TextSendMessage(text=GET_EVENT["nickname"] + "，歡迎您成為本熊貓的好友！" + sticon(u"\U00100097")),
-#         FlexSendMessage(alt_text = "主選單", contents = flexMainMenu(GET_EVENT["channelId"], GET_EVENT["level"])),
-#         FlexSendMessage(alt_text = flexObject[0], contents = flexObject[1])
-#     ]
-#     ##發送回覆
-#     send_reply(GET_EVENT, False)
-# @handler.add(JoinEvent)
-# def handle_join(event):
-#     ##取得EVENT物件
-#     GET_EVENT = get_event_obj(event)
-#     flexObject = flexStatusMenu({
-#         "global_talk_text": "所有人教的" if GET_EVENT['global_talk'] else "本頻道教的", 
-#         "mute_text": "安靜" if GET_EVENT['mute'] else "可以說話", 
-#         "global_talk": GET_EVENT['global_talk'], 
-#         "mute": GET_EVENT['mute']
-#     })
-#     GET_EVENT["replyList"] = [
-#         TextSendMessage(text="大家好我叫酷熊貓" + sticon(u"\U00100097")),
-#         FlexSendMessage(alt_text = "主選單", contents = flexMainMenu(GET_EVENT["channelId"], GET_EVENT["level"])),
-#         FlexSendMessage(alt_text = flexObject[0], contents = flexObject[1])
-#     ]
-#     ##發送回覆
-#     send_reply(GET_EVENT, False)
-# @handler.add(UnfollowEvent)
-# def handle_unfollow(event):
-#     remove_channel(getChannelId(event))
-# @handler.add(LeaveEvent)
-# def handle_leave(event):
-#     pass
-#     #remove_channel(getChannelId(event))
 
 ####################CallbackEvent處理區#################### 
 def handle_callback(bot, update):

@@ -65,7 +65,7 @@ def pushing_process(type, content, channelId):
         message = content["msg"]
     elif type == 'markup':
         message = content["msg"]
-        markup = json.stringify(content["markup"])
+        markup = json.dumps(content["markup"])
     elif type == 'image':
         if 'https://' in content["msg"] and any(x in content["msg"] for x in ['.jpg','.jpeg','.png']):
             message = content["msg"]

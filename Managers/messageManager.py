@@ -82,8 +82,8 @@ def pushing_to_channel(type, message, markup, channel_id, record):
         if channel_id!=None:
             if channel_id=="ALL": pushing_to_all(type, message, markup, record)                   #廣播
             else: 
-                if type == 'image': bot.send_photo(chat_id = channel_id, photo = message, reply_markup = markup)#圖片推播
-                else: bot.send_message(chat_id = channel_id, text = message, reply_markup = markup)             #推播
+                if type == 'image': bot.send_photo(chat_id = channel_id, photo = message, reply_markup = markup)                  #圖片推播
+                else: bot.send_message(chat_id = channel_id, text = message, reply_markup = markup, parse_mode=ParseMode.MARKDOWN)#推播
         store_pushed(type, record, channel_id)
         return 'ok'
     except:
@@ -96,8 +96,8 @@ def pushing_to_all(type, message, markup, record):
         dataRow = selectDB(query, None)
         datas = dataRow if len(dataRow) else []
         for data in datas:
-            if type == 'image': bot.send_photo(chat_id = data["channel_id"], photo = message, reply_markup = markup)#圖片推播
-            else: bot.send_message(chat_id = data["channel_id"], text = message, reply_markup = markup)             #推播
+            if type == 'image': bot.send_photo(chat_id = data["channel_id"], photo = message, reply_markup = markup)                  #圖片推播
+            else: bot.send_message(chat_id = data["channel_id"], text = message, reply_markup = markup, parse_mode=ParseMode.MARKDOWN)#推播
         store_pushed(type, record, "ALL")
         return 'ok'
     except:

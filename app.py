@@ -5,7 +5,7 @@ import os, json, codecs, re, random
 
 import telegram
 from telegram.ext import Dispatcher, MessageHandler, Filters, Updater, CommandHandler, CallbackQueryHandler
-from telegram import InlineKeyboardMarkup, InlineKeyboardButton, ReplyKeyboardMarkup, KeyboardButton
+from telegram import InlineKeyboardMarkup, InlineKeyboardButton, ReplyKeyboardMarkup, KeyboardButton, ParseMode
 
 #導入env, model
 from env import *
@@ -43,17 +43,15 @@ def webhook_handler():
         dispatcher.process_update(update)
     return 'ok'
 
-# ####################推播####################
-# @app.route("/pushing", methods=['POST'])
-# def pushing():
-#     data = json.loads(request.get_data())
-#     mtype = data.get('type', 'text')
-#     title = data.get('title', '')
-#     message = data.get('message', '')
-#     channel_id = data.get('channel_id', '')
-#     template = data.get('template', None)
-#     status = pushing_process(mtype, title, message, channel_id) if template == None else pushing_template(title, message, channel_id, template)
-#     return json.dumps({'msg': status})
+####################推播####################
+@app.route("/pushing", methods=['POST'])
+def pushing():
+    data = json.loads(request.get_data())
+    mtype = data.get('type', 'text')
+    content = data.get('content', "")
+    channel_id = data.get('channel_id', '')
+    status = pushing_process(mtype, content, channel_id)
+    return json.dumps({'msg': status})
 
 ####################小功能####################
 ##隨機產生後綴字
@@ -118,11 +116,11 @@ def send_reply(update, GET_EVENT, STORE_LOG = False):
     ####回傳給TELEGRAM
     for replyMsg in GET_EVENT["replyList"]:
         if replyMsg["type"] == "text":
-            update.message.reply_text(replyMsg["msg"])
+            update.message.reply_text(replyMsg["msg"], parse_mode=ParseMode.MARKDOWN)
         if replyMsg["type"] == "image":
-            update.message.reply_text(replyMsg["msg"])
+            update.message.reply_text(replyMsg["msg"], parse_mode=ParseMode.MARKDOWN)
         if replyMsg["type"] == "markup":
-            update.message.reply_text(replyMsg["msg"], reply_markup = replyMsg["markup"])
+            update.message.reply_text(replyMsg["msg"], reply_markup = replyMsg["markup"], parse_mode=ParseMode.MARKDOWN)
         if replyMsg["type"] == "edit_message_text":
             print(replyMsg["msg"])
             update.callback_query.edit_message_text(replyMsg["msg"])

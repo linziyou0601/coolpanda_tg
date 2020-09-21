@@ -37,8 +37,7 @@ CONFIG = {
     CREATE TABLE IF NOT EXISTS tg_pushed (
         id INT AUTO_INCREMENT PRIMARY KEY,
         type TEXT NOT NULL COMMENT "訊息種類",
-        title TEXT NOT NULL COMMENT "訊息標題",
-        message TEXT NOT NULL COMMENT "訊息內容",
+        record TEXT NOT NULL COMMENT "訊息內容",
         channel_id TEXT NOT NULL COMMENT "發送至頻道 ID",
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
         create_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP

@@ -127,8 +127,9 @@ def handle_callback(bot, update):
     data = parse_qs(update.callback_query.data)
     
     ##發送回覆
-    GET_EVENT = postback_processer(GET_EVENT, data)
-    send_reply(update, GET_EVENT, False)
+    if not data['action'][0]=='skip':
+        GET_EVENT = postback_processer(GET_EVENT, data)
+        send_reply(update, GET_EVENT, False)
 
 ####################文字訊息處理區####################
 def handle_message(bot, update):

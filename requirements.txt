@@ -1,0 +1,7 @@
+flask
+Flask-Cors
+install line-bot-sdk
+mysql-connector
+mysql-connector-python
+numpy
+python-telegram-bot

@@ -1,6 +1,6 @@
 flask
 Flask-Cors
-install line-bot-sdk
+line-bot-sdk
 mysql-connector
 mysql-connector-python
 numpy
